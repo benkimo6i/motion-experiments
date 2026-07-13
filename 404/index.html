@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 Stress Ball</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="scene"></div>
+
+<div id="hud">
+  <button id="backBtn">&larr; Back</button>
+  <div id="hint"></div>
+  <canvas id="camPreview" width="160" height="120"></canvas>
+</div>
+
+<div id="handError" role="alertdialog" aria-labelledby="heTitle">
+  <div class="card">
+    <h2 id="heTitle">Hand tracking isn't working</h2>
+    <p id="heMsg">We couldn't detect your hand. To fix it:</p>
+    <ul>
+      <li>Allow camera access when your browser asks</li>
+      <li>Make sure your hand is inside the camera frame</li>
+      <li>Face a light source &mdash; avoid strong backlight</li>
+      <li>If embedded in another page, open this file directly in your browser</li>
+    </ul>
+    <div class="row">
+      <button class="primary" id="heRetry">Try again</button>
+      <button id="heMouse">Use mouse mode</button>
+    </div>
+  </div>
+</div>
+
+<video id="cam" playsinline autoplay muted></video>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Load order matters: shared state first, then scene objects, then systems, then boot/loop -->
+<script src="js/state.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/page.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/splat.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/ball.js"></script>
+<script src="js/camera.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/mouse.js"></script>
+<script src="js/hand.js"></script>
+<script src="js/boot.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
