@@ -2,6 +2,8 @@
 
 A Three.js stress ball floating over a broken 404 page. Squeeze it, throw it, and watch letters spit out of the page.
 
+[Demo]([https://threejs.org/](https://benkimo6i.github.io/motion-experiments/404/))
+
 ## Run
 
 Serve the repo root (camera APIs need `localhost` or `https`, not `file://`):
