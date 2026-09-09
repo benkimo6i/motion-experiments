@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>e-motion Ambient Black Demo</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Three.js required for WebGL Background Shader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <style>
+    @keyframes staggerFadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      scroll-snap-type: y mandatory;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #000000;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, .serif-heading {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* Floating Navigation Controls */
+    .header-controls {
+      position: fixed;
+      top: 1.25rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(16px);
+      padding: 0.6rem 1.2rem;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .e-motion-pill-selector {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .e-motion-pill {
+      border: none;
+      padding: 0.45rem 1rem;
+      border-radius: 20px;
+      background: #171717;
+      color: #a3a3a3;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      border: 1px solid transparent;
+    }
+
+    .e-motion-pill.active {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    /* Fullscreen View Sections */
+    .section-view {
+      height: 100vh;
+      width: 100vw;
+      scroll-snap-align: start;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 3rem 2rem;
+      background: transparent; /* Transparent so background canvas shows through */
+    }
+
+    #shaderCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0; /* Hidden by default on initial load */
+      transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transition-delay: 0s; /* Waits 150ms before starting the fade-in */
+    }
+
+    #shaderCanvas.active {
+      opacity: 1;
+      transition-delay: 300ms; /* Waits 150ms before starting the fade-in */
+    }
+
+    .mirror-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 650px;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(20px);
+      padding: 3rem;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .mirror-content h2 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .mirror-content p {
+      color: #d4d4d4;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    /* Regulation Gradient Copy Styling */
+    .regulation-container {
+      max-width: 900px;
+      text-align: center;
+      z-index: 2;
+      padding: 2rem;
+    }
+
+    .gradient-text-heading {
+      font-size: 3.6rem;
+      line-height: 1.15;
+      margin-bottom: 1.5rem;
+      background-image: linear-gradient(135deg, #262626 0%, #888888 50%, #ffffff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+      transition: opacity 0.8s ease;
+    }
+
+    .gradient-text-body {
+      font-size: 1.35rem;
+      line-height: 1.7;
+      background-image: linear-gradient(135deg, #262626 0%, #a3a3a3 50%, #f5f5f5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+      transition: opacity 0.8s ease;
+    }
+
+    /* Personalized Grid Setup */
+    .personalize-wrapper {
+      width: 100%;
+      max-width: 1200px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .personalize-header {
+      text-align: center;
+      max-width: 650px;
+    }
+
+    .personalize-header h2 {
+      font-size: 2.6rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .action-btn {
+      padding: 0.6rem 1.4rem;
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+      margin-top: 0.5rem;
+    }
+
+    .action-btn:hover {
+      opacity: 0.85;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.75rem;
+      width: 100%;
+      padding: 1rem;
+    }
+
+    .card-item {
+      background: #0a0a0a;
+      padding: 1.25rem;
+      border-radius: 16px;
+      border: 1px solid #262626;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+      transition: all 0.5s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-item h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.4rem;
+      color: #ffffff;
+    }
+
+    .card-item p {
+      font-size: 0.88rem;
+      color: #a3a3a3;
+      line-height: 1.45;
+    }
+
+    .card-item.active-glow {
+      transform: translateY(-2px);
+      border-color: var(--glow-color);
+      box-shadow: 0 0 20px var(--glow-color, rgba(255, 255, 255, 0.25));
+    }
+
+    .card-item.dimmed {
+      opacity: 0.25;
+      transform: scale(0.97);
+      box-shadow: none;
+    }
+
+    @media (max-width: 1024px) {
+      .cards-grid { grid-template-columns: repeat(2, 1fr); }
+      .gradient-text-heading { font-size: 2.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-controls">
+    <div id="manualControls"></div>
+  </div>
+
+  <!-- Section 1: Mirror Canvas (WebGL Ambient Shader) -->
+  <section class="section-view e-motion" id="mirrorSection" data-emotions="happy, sad, angry">
+    <canvas id="shaderCanvas"></canvas>
+    <div class="mirror-content">
+      <h2>Mirror Canvas</h2>
+      <p>Fluid ambient noise shaders continuously morph between dynamic color stops, mirroring the emotion you express.</p>
+    </div>
+  </section>
+
+  <!-- Section 2: Mood Regulation -->
+  <section class="section-view e-motion" id="regulateSection" data-emotions="happy, angry, sad">
+    <div class="regulation-container">
+      <h2 id="regHeading" class="gradient-text-heading">Breathe into the Flow of Emotion</h2>
+      <p id="regBody" class="gradient-text-body">
+        Emotions are not rigid static states; they are fluid transitions of energy passing through your consciousness. 
+        Allow yourself to observe the shift without holding back.
+      </p>
+    </div>
+  </section>
+
+  <!-- Section 3: Personalized Grid -->
+  <section class="section-view e-motion" id="personalizeSection" data-emotions="happy, sad, angry">
+    <div class="personalize-wrapper">
+      <div class="personalize-header">
+        <h2>Personalized Recommendations</h2>
+        <p style="color: #a3a3a3;">Explore tailored cards prioritized for your mood.</p>
+        <button id="toggleFilterBtn" class="action-btn">Disable Filter</button>
+      </div>
+
+      <div class="cards-grid" id="cardsGrid">
+        <div class="card-item" data-category="angry">
+            <h3>🌊 Ocean Waves</h3>
+            <p>Rhythmic soundscapes that help ground intense emotions.</p>
+        </div>
+
+        <div class="card-item" data-category="angry">
+            <h3>🧊 Cold Reset</h3>
+            <p>Quick physiological cooling technique to lower elevated heart rates.</p>
+        </div>
+        
+        <div class="card-item" data-category="happy">
+            <h3>😄 Standup Clips</h3>
+            <p>Hilarious short-form comedy bits for immediate entertainment.</p>
+        </div>
+        
+        <div class="card-item" data-category="sad">
+            <h3>🎨 Ambient Art</h3>
+            <p>Minimalist art galleries created to lower cognitive stress.</p>
+        </div>
+
+        <div class="card-item" data-category="happy">
+            <h3>☀️ Sunlit Getaways</h3>
+            <p>Inspiring photography and itinerary ideas for warm coastal destinations.</p>
+        </div>
+
+        <div class="card-item" data-category="sad">
+            <h3>📖 Soft Passages</h3>
+            <p>Comforting literary excerpts that offer perspective and comfort.</p>
+        </div>
+        
+        <div class="card-item" data-category="angry">
+            <h3>🧘 Deep Breathing</h3>
+            <p>Guided box-breathing exercise to reset your nervous system in 2 minutes.</p>
+        </div>
+        
+        <div class="card-item" data-category="happy">
+            <h3>🎉 Upbeat Beats</h3>
+            <p>High-tempo electronic & pop tracks engineered to sustain energy levels.</p>
+        </div>
+
+        <div class="card-item" data-category="angry">
+            <h3>⚡ Vent Space</h3>
+            <p>A private, non-judgmental prompt tool to write out stress.</p>
+        </div>
+
+        <div class="card-item" data-category="happy">
+            <h3>🚀 Quick Wins</h3>
+            <p>Fast micro-habits to capitalize on your current positive momentum.</p>
+        </div>
+        
+        <div class="card-item" data-category="sad">
+            <h3>☕ Cozy Brews</h3>
+            <p>Warming herbal tea recipes and mindful brewing routines.</p>
+        </div>
+
+        <div class="card-item" data-category="sad">
+            <h3>🌱 Gentle Calm</h3>
+            <p>Soothing acoustic soundscapes designed for peaceful introspection.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- External Script Dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
+  <script src="./background-shader.js"></script>
+
+  <script type="module">    
+    import eMotion from './e-motion.js';
+
+    let filterActive = true;
+
+    // 1. Initialize the 2D Background Shader
+    BackgroundShader.init('shaderCanvas');
+
+    // 2. Regulation Copy Dictionary
+    const regulationCopy = {
+        happy: {
+            heading: "Ride the Wave",
+            body: "Joy is a powerful driver of creativity and connection. We chose a vibrant green gradient because green is associated with growth, balance, and vitality—reinforcing that positive momentum. Savor this feeling, anchoring the warmth in your mind to fuel your next steps with confidence and light."
+        },
+        sad: {
+            heading: "Rest & Restore",
+            body: "Sadness invites quiet reflection and gentle healing. We chose a soft amber gradient because warm, muted tones are calming and evoke comfort without overstimulating a lowered mood. Give yourself permission to rest and move softly—allowing space for renewal at your own comfortable pace."
+        },
+        angry: {
+            heading: "Redirect the Fire",
+            body: "Frustration holds high energy waiting to be redirected. We chose a cool blue gradient because blue is known to lower heart rate and promote calm, counterbalancing intense emotion. Take a slow, grounding breath and channel that passion into focused, purposeful action."
+        }
+    };
+
+    const regulationGradients = {
+        angry: {
+            heading: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #bfdbfe 100%)',
+            body: 'linear-gradient(135deg, #1d4ed8 0%, #bfdbfe 100%)'
+        },
+        sad: {
+            heading: 'linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #fef08a 100%)',
+            body: 'linear-gradient(135deg, #fcd34d 0%, #fef3c7 100%)'
+        },
+        happy: {
+            heading: 'linear-gradient(135deg, #16a34a 0%, #4ade80 50%, #bbf7d0 100%)',
+            body: 'linear-gradient(135deg, #86efac 0%, #dcfce7 100%)'
+        }
+    };
+
+    // 3. Set & Preserve Regulation Gradient Text
+    function setRegulationState(emotion) {
+        const headingEl = document.getElementById('regHeading');
+        const bodyEl = document.getElementById('regBody');
+        if (!headingEl || !bodyEl) return;
+
+        const palette = regulationGradients[emotion] || regulationGradients.happy;
+        const copy = regulationCopy[emotion] || regulationCopy.happy;
+
+        headingEl.style.display = 'inline-block';
+        bodyEl.style.display = 'block';
+
+        // Apply gradient to heading
+        headingEl.style.backgroundImage = palette.heading;
+        headingEl.style.setProperty('-webkit-background-clip', 'text');
+        headingEl.style.setProperty('background-clip', 'text');
+        headingEl.style.setProperty('-webkit-text-fill-color', 'transparent');
+        headingEl.style.setProperty('color', 'transparent');
+
+        // Apply gradient to body
+        bodyEl.style.backgroundImage = palette.body;
+        bodyEl.style.setProperty('-webkit-background-clip', 'text');
+        bodyEl.style.setProperty('background-clip', 'text');
+        bodyEl.style.setProperty('-webkit-text-fill-color', 'transparent');
+        bodyEl.style.setProperty('color', 'transparent');
+
+        // Update copy for both
+        headingEl.innerText = copy.heading;
+        bodyEl.innerText = copy.body;
+
+        // Reset animations so they replay every time this runs
+        headingEl.style.animation = 'none';
+        bodyEl.style.animation = 'none';
+        void headingEl.offsetWidth; // force reflow
+        void bodyEl.offsetWidth;
+
+        headingEl.style.animation = 'staggerFadeIn 0.5s ease forwards';
+        bodyEl.style.animation = 'staggerFadeIn 0.5s ease forwards 0.15s';
+        bodyEl.style.opacity = '0'; // ensure it starts hidden during the delay
+    }
+
+    // 4. Card Highlight Filter
+    function highlightCategory(emotion) {
+        if (!filterActive) return;
+        const items = document.querySelectorAll('.card-item');
+        const glowColor = eMotion.config[emotion].glow;
+
+        items.forEach(item => {
+            if (item.dataset.category === emotion) {
+                item.classList.add('active-glow');
+                item.classList.remove('dimmed');
+                item.style.setProperty('--glow-color', glowColor);
+                item.style.boxShadow = `0 0 20px ${glowColor}`;
+            } else {
+                item.classList.remove('active-glow');
+                item.classList.add('dimmed');
+                item.style.boxShadow = 'none';
+            }
+        });
+    }
+
+    // 5. Register e-Motion Trigger Callbacks with HSL Hues
+    eMotion.happy.trigger = (el) => {
+        if (el.id === 'mirrorSection') BackgroundShader.setHue(58);
+        if (el.id === 'regulateSection') setRegulationState('happy');
+        if (el.id === 'personalizeSection') highlightCategory('happy');
+    };
+
+    eMotion.sad.trigger = (el) => {
+        if (el.id === 'mirrorSection') BackgroundShader.setHue(205);
+        if (el.id === 'regulateSection') setRegulationState('sad');
+        if (el.id === 'personalizeSection') highlightCategory('sad');
+    };
+
+    eMotion.angry.trigger = (el) => {
+        if (el.id === 'mirrorSection') BackgroundShader.setHue(2);
+        if (el.id === 'regulateSection') setRegulationState('angry');
+        if (el.id === 'personalizeSection') highlightCategory('angry');
+    };
+
+    // Filter Toggle Listener
+    const filterBtn = document.getElementById('toggleFilterBtn');
+    filterBtn.addEventListener('click', () => {
+        filterActive = !filterActive;
+        filterBtn.innerText = filterActive ? 'Disable Filter' : 'Activate Filter';
+
+        const items = document.querySelectorAll('.card-item');
+        items.forEach(item => {
+            item.classList.remove('dimmed', 'active-glow');
+            item.style.boxShadow = '0 0 12px rgba(0,0,0,0.6)';
+        });
+
+        if (filterActive && eMotion.activeEmotion) {
+            highlightCategory(eMotion.activeEmotion);
+        }
+    });
+
+    eMotion.renderManualSelector(document.getElementById('manualControls'));
+
+    eMotion.init({
+        preview: true,
+        threshold: 0.38,
+        smoothingFrames: 12,
+        holdDelayMs: 400
+    });
+  </script>
+</body>
+</html>
