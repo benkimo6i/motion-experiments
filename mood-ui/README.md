@@ -61,6 +61,6 @@ The sample page wires three `.mood` blocks to show what triggers can do:
 ```
 mood-ui/
 ├── index.html              # demo page — example triggers and section markup
-├── mood.js             # library: detection, smoothing, observer, manual fallback
+├── mood.js                 # library: detection, smoothing, observer, manual fallback
 └── background-shader.js    # demo helper: dual-canvas ambient shader
 ```

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Atelier — The Collection</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ══════════ sticky pill nav ══════════ -->
+<div id="nav-wrap">
+  <nav id="nav" role="tablist" aria-label="Product categories">
+    <button class="tab" role="tab" data-cat="eyeglasses">Eyeglasses</button>
+    <button class="tab" role="tab" data-cat="sunglasses">Sunglasses</button>
+    <button class="tab" role="tab" data-cat="smart">Smart Glasses</button>
+  </nav>
+</div>
+
+<main>
+  <div id="content">
+
+    <!-- ══════════ hero (showcase only) ══════════ -->
+    <section id="hero">
+      <div class="viewer" id="hero-viewer">
+        <canvas></canvas>
+        <span class="spin-cue">Drag to rotate</span>
+      </div>
+      <div id="hero-copy">
+        <h1 id="hero-headline"></h1>
+        <p class="lead" id="hero-lead"></p>
+        <p class="desc" id="hero-desc"></p>
+        <p class="specs" id="hero-specs"></p>
+      </div>
+    </section>
+
+    <h2 id="shop-heading">Shop the latest.</h2>
+
+    <!-- ══════════ product cards (try-on capable) ══════════ -->
+    <div id="cards">
+      <div class="card" data-slot="0">
+        <div class="viewer">
+          <canvas></canvas>
+          <span class="spin-cue">Drag to rotate</span>
+        </div>
+        <div class="p-name"></div>
+        <div class="p-actions">
+          <button class="btn btn-buy">Buy</button>
+          <button class="btn btn-try">Try on</button>
+        </div>
+      </div>
+      <div class="card" data-slot="1">
+        <div class="viewer">
+          <canvas></canvas>
+          <span class="spin-cue">Drag to rotate</span>
+        </div>
+        <div class="p-name"></div>
+        <div class="p-actions">
+          <button class="btn btn-buy">Buy</button>
+          <button class="btn btn-try">Try on</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    Try-on uses your camera entirely on this device — nothing is recorded or uploaded.<br>
+    Products spin freely; zoom and pan are disabled by design.
+  </footer>
+</main>
+
+<div id="toast" role="status"></div>
+
+<!-- ══════════ GLB drop-in config ══════════
+     To use a real 3D model for any product, paste its .glb URL into
+     data-glb-url on the matching element below. Optional fine-tuning:
+       data-glb-scale    e.g. "1.2"      (multiplier)
+       data-glb-offset   e.g. "0,0.1,0"  (x,y,z in item units)
+       data-glb-rotation e.g. "0,90,0"   (degrees x,y,z)
+     Applies to both the showcase viewer and the try-on mirror. -->
+<div id="glb-config" hidden>
+  <span data-product="eyeglasses/round"    data-glb-url="assets/eyeglasses/round.glb"     data-glb-scale="1.1" data-glb-offset="10,0,0" data-glb-rotation="0,90,0"></span>
+  <span data-product="eyeglasses/rect"     data-glb-url="assets/eyeglasses/rectangle.glb" data-glb-scale="1.3" data-glb-offset="0,0,-0.07" data-glb-rotation=""></span>
+  <span data-product="eyeglasses/duotone"  data-glb-url="assets/eyeglasses/duotone.glb"   data-glb-scale="" data-glb-offset="" data-glb-rotation=""></span>
+  <span data-product="sunglasses/classic"  data-glb-url="assets/sunglasses/classic.glb"   data-glb-scale="" data-glb-offset="" data-glb-rotation=""></span>
+  <span data-product="sunglasses/cateye"   data-glb-url="assets/sunglasses/cateye.glb"    data-glb-scale="1.1" data-glb-offset="0,0,-5" data-glb-rotation=""></span>
+  <span data-product="sunglasses/fashion"  data-glb-url="assets/sunglasses/fashion.glb"   data-glb-scale="1.1" data-glb-offset="0,0,-0.05" data-glb-rotation=""></span>
+  <span data-product="smart/meta"          data-glb-url="assets/smartglasses/meta.glb"    data-glb-scale="1.2" data-glb-offset="0,0,-20" data-glb-rotation="0,-10,0"></span>
+  <span data-product="smart/vuzix"         data-glb-url="assets/smartglasses/vuzix.glb"   data-glb-scale="1.4" data-glb-offset="0,0,-0.5" data-glb-rotation=""></span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+
+
+
+<script src="product-mirror.js"></script>
+</body>
+</html>
