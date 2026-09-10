@@ -2,7 +2,7 @@
 
 A browser library that reads facial expressions and drives UI from them. Inspired by **micro-expressions** in psychology — the brief, involuntary muscle movements that leak how someone actually feels — Mood UI maps live face data to emotion states so interfaces and animations can respond in a more dynamic, organic way than clicks or static toggles.
 
-The included demo (`index.html`) is one example: ambient shaders, copy, and card highlights that shift as your expression changes.
+The included [demo](https://benkimo6i.github.io/motion-experiments/mood-ui/) includes: ambient shaders, copy, and card highlights that shift as your expression changes.
 
 ## Idea
 

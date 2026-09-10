@@ -2,7 +2,7 @@
 
 A browser-based virtual try-on storefront. Product Mirror anchors 3D glasses models to your face in real time using webcam face tracking, so shoppers can spin a product to inspect it and then see it worn — without leaving the page.
 
-The included demo is a three-category eyewear shop (Eyeglasses, Sunglasses, Smart Glasses) with a spinning hero product, buyable cards, and a live try-on mode per card.
+The included [demo](https://benkimo6i.github.io/motion-experiments/product-mirror/) is a three-category eyewear shop (Eyeglasses, Sunglasses, Smart Glasses) with a spinning hero product, buyable cards, and a live try-on mode per card.
 
 ## Idea
 

@@ -16,6 +16,8 @@ Then visit `http://localhost:3000` (or the port printed by your static server).
 |---|---|---|
 | [404 Stress Ball](404/) | `/404/` | A 3D stress ball you squeeze and throw against a 404 page — via hand tracking or mouse |
 | [Product Mirror](product-mirror/) | `/product-mirror/` | Wearables product showcase with a mirrored tile interaction |
+| [Mood UI](mood-ui/) | `/mood-ui/` | UI library driven by facial recognition |
+
 
 ## Requirements
 
