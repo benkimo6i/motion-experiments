@@ -1,15 +1,16 @@
 /**
- * e-motion.js
- * Emotion-driven UI library powered by MediaPipe Face Landmarker
+ * mood.js
+ * Mood-driven UI library powered by MediaPipe Face Landmarker
  */
 
 import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.12";
 
-class EMotion {
+class Mood {
   constructor() {
-    this.emotions = ['happy', 'sad', 'angry'];
-    this.activeEmotion = null;
+    this.moods = ['happy', 'sad', 'angry'];
+    this.activeMood = null;
     this.deniedCallback = null;
+    this.grantedCallback = null;
     
     // Updated color palettes with rich multi-hue depth for ambient noise shading
     this.config = {
@@ -37,8 +38,8 @@ class EMotion {
     this.smoothingFrames = 12;
     this.threshold = 0.38;
 
-    this.pendingEmotion = null;
-    this.pendingEmotionStartTime = 0;
+    this.pendingMood = null;
+    this.pendingMoodStartTime = 0;
     this.holdDelayMs = 400;
 
     this.showPreview = false;
@@ -58,13 +59,13 @@ class EMotion {
 
   _setupPropertyAccessors() {
     const self = this;
-    this.emotions.forEach((emotion) => {
-      Object.defineProperty(self, emotion, {
+    this.moods.forEach((mood) => {
+      Object.defineProperty(self, mood, {
         get: () => ({
-          get gradient() { return self.config[emotion].gradient; },
-          set gradient(val) { self.config[emotion].gradient = val; self._applyEmotionUpdate(); },
-          get trigger() { return self.config[emotion].trigger; },
-          set trigger(fn) { self.config[emotion].trigger = fn; self._applyEmotionUpdate(); }
+          get gradient() { return self.config[mood].gradient; },
+          set gradient(val) { self.config[mood].gradient = val; self._applyMoodUpdate(); },
+          get trigger() { return self.config[mood].trigger; },
+          set trigger(fn) { self.config[mood].trigger = fn; self._applyMoodUpdate(); }
         }),
         configurable: true
       });
@@ -73,6 +74,10 @@ class EMotion {
 
   onDenied(callback) {
     this.deniedCallback = callback;
+  }
+
+  onGranted(callback) {
+    this.grantedCallback = callback;
   }
 
   async init(options = {}) {
@@ -111,10 +116,15 @@ class EMotion {
       await this.videoElement.play();
 
       this.isInitialized = true;
+
+      if (typeof this.grantedCallback === 'function') {
+        this.grantedCallback();
+      }
+        
       this._startDetectionLoop();
 
     } catch (err) {
-      console.warn("e-motion: Camera access unavailable.", err);
+      console.warn("mood: Camera access unavailable.", err);
       this._removePreviewContainer();
 
       if (typeof this.deniedCallback === 'function') {
@@ -128,14 +138,14 @@ class EMotion {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           this.visibleElements.add(entry.target);
-          this._applyEmotionUpdate();
+          this._applyMoodUpdate();
         } else {
           this.visibleElements.delete(entry.target);
         }
       });
     }, { rootMargin: '50px' });
 
-    document.querySelectorAll('.e-motion').forEach(el => this.observer.observe(el));
+    document.querySelectorAll('.mood').forEach(el => this.observer.observe(el));
   }
 
   _startDetectionLoop() {
@@ -143,15 +153,15 @@ class EMotion {
       if (this.videoElement && this.videoElement.currentTime > 0) {
         const results = this.faceLandmarker.detectForVideo(this.videoElement, performance.now());
         
-        let rawEmotions = { happy: 0, sad: 0, angry: 0 };
+        let rawMoods = { happy: 0, sad: 0, angry: 0 };
 
         if (results.faceBlendshapes && results.faceBlendshapes.length > 0) {
-          rawEmotions = this._calculateHeuristicScores(results.faceBlendshapes[0].categories);
-          this._processSmoothedEmotion(rawEmotions);
+          rawMoods = this._calculateHeuristicScores(results.faceBlendshapes[0].categories);
+          this._processSmoothedMood(rawMoods);
         }
 
         if (this.showPreview && this.previewCanvas) {
-          this._renderPreview(rawEmotions);
+          this._renderPreview(rawMoods);
         }
       }
       requestAnimationFrame(processFrame);
@@ -174,7 +184,7 @@ class EMotion {
     return { happy, sad, angry };
   }
 
-  _processSmoothedEmotion(rawScores) {
+  _processSmoothedMood(rawScores) {
     this.frameBuffer.push(rawScores);
     if (this.frameBuffer.length > this.smoothingFrames) {
       this.frameBuffer.shift();
@@ -182,8 +192,8 @@ class EMotion {
 
     const averages = { happy: 0, sad: 0, angry: 0 };
     this.frameBuffer.forEach(frame => {
-      for (const emotion in averages) {
-        averages[emotion] += frame[emotion] / this.frameBuffer.length;
+      for (const mood in averages) {
+        averages[mood] += frame[mood] / this.frameBuffer.length;
       }
     });
 
@@ -200,39 +210,39 @@ class EMotion {
     const now = performance.now();
 
     if (maxScore >= this.threshold) {
-      if (maxEmotion !== this.activeEmotion) {
-        if (this.pendingEmotion !== maxEmotion) {
-          this.pendingEmotion = maxEmotion;
-          this.pendingEmotionStartTime = now;
-        } else if (now - this.pendingEmotionStartTime >= this.holdDelayMs) {
-          this.setEmotion(maxEmotion);
+      if (maxEmotion !== this.activeMood) {
+        if (this.pendingMood !== maxEmotion) {
+          this.pendingMood = maxEmotion;
+          this.pendingMoodStartTime = now;
+        } else if (now - this.pendingMoodStartTime >= this.holdDelayMs) {
+          this.setMood(maxEmotion);
         }
       } else {
-        this.pendingEmotion = null;
+        this.pendingMood = null;
       }
     } else {
-      this.pendingEmotion = null;
+      this.pendingMood = null;
     }
   }
 
-  setEmotion(emotionName) {
-    if (this.emotions.includes(emotionName)) {
-      this.activeEmotion = emotionName;
-      this._applyEmotionUpdate();
+  setMood(moodName) {
+    if (this.moods.includes(moodName)) {
+      this.activeMood = moodName;
+      this._applyMoodUpdate();
     }
   }
 
-  _applyEmotionUpdate() {
-    if (!this.activeEmotion) return;
+  _applyMoodUpdate() {
+    if (!this.activeMood) return;
 
     this.visibleElements.forEach(el => {
-      const allowed = el.dataset.emotions ? el.dataset.emotions.split(',').map(e => e.trim()) : [];
+      const allowed = el.dataset.moods ? el.dataset.moods.split(',').map(e => e.trim()) : [];
       
-      if (allowed.includes(this.activeEmotion)) {
-        el.classList.add('e-motion-active');
-        el.dataset.currentEmotion = this.activeEmotion;
+      if (allowed.includes(this.activeMood)) {
+        el.classList.add('mood-active');
+        el.dataset.currentMood = this.activeMood;
 
-        const configEntry = this.config[this.activeEmotion];
+        const configEntry = this.config[this.activeMood];
         
         if (configEntry && typeof configEntry.trigger === 'function') {
           configEntry.trigger(el);
@@ -245,7 +255,7 @@ class EMotion {
 
   _createPreviewContainer() {
     this.previewContainer = document.createElement('div');
-    this.previewContainer.id = 'e-motion-preview';
+    this.previewContainer.id = 'mood-preview';
     this.previewContainer.style.cssText = `
       position: fixed;
       bottom: 20px;
@@ -290,13 +300,13 @@ class EMotion {
     this.previewCtx.fillRect(0, 130, 220, 70);
 
     let y = 142;
-    this.emotions.forEach(emotion => {
-      const score = scores[emotion] || 0;
-      const isActive = this.activeEmotion === emotion;
+    this.moods.forEach(mood => {
+      const score = scores[mood] || 0;
+      const isActive = this.activeMood === mood;
 
       this.previewCtx.fillStyle = isActive ? '#22c55e' : '#737373';
       this.previewCtx.font = '10px sans-serif';
-      this.previewCtx.fillText(emotion.substring(0, 5).toUpperCase(), 8, y + 8);
+      this.previewCtx.fillText(mood.substring(0, 5).toUpperCase(), 8, y + 8);
 
       this.previewCtx.fillStyle = '#262626';
       this.previewCtx.fillRect(50, y, 115, 8);
@@ -313,16 +323,16 @@ class EMotion {
 
   renderManualSelector(containerElement) {
     const wrapper = document.createElement('div');
-    wrapper.className = 'e-motion-pill-selector';
+    wrapper.className = 'mood-pill-selector';
     
-    this.emotions.forEach(emotion => {
+    this.moods.forEach(mood => {
       const btn = document.createElement('button');
-      btn.innerText = emotion.charAt(0).toUpperCase() + emotion.slice(1);
-      btn.className = 'e-motion-pill';
+      btn.innerText = mood.charAt(0).toUpperCase() + mood.slice(1);
+      btn.className = 'mood-pill';
       btn.onclick = () => {
-        document.querySelectorAll('.e-motion-pill').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.mood-pill').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        this.setEmotion(emotion);
+        this.setMood(mood);
       };
       wrapper.appendChild(btn);
     });
@@ -331,5 +341,5 @@ class EMotion {
   }
 }
 
-const eMotion = new EMotion();
-export default eMotion;
+const mood = new Mood();
+export default mood;
